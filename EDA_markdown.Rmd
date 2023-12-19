@@ -1,12 +1,17 @@
 ---
-title: "Exploratory Data Analysis | Uber Trips on Easter (NYC)"
+title: "Exploratory Data Analysis | Uber Trips on Easter Day (NYC)"
 format: html
 ---
+Project work hours: 15
 
+Observational unit: one Uber trip in NYC in April, 2014 on Easter Day
 Variables (within original apr dataframe):
+  Date/Time : The date and time of the Uber pickup 
+  Lat : the latitude of the pickup location  
+  Lon : the longitude of the pickup location 
+  Base : the TLC base code associated with the driver
 
-Date/Time : The date and time of the Uber pickup Lat : The latitude of the Uber pickup Lon : The longitude of the Uber pickup Base : The TLC base company code affiliated with the Uber pickup Hours worked: 14 hours
-
+Installing necessary libraries/packages:
 ```{r}
 library(tidyverse)
 library(ggplot2)
@@ -14,45 +19,40 @@ library(ggthemes)
 library(dplyr)
 library(readr)
 library(patchwork)
-
 ```
 
+Loading the raw dataset from Github user harshr28:
 ```{r}
 #Github: harshr28, uber-raw-data-apr14.csv
 apr <- read.csv("https://raw.githubusercontent.com/harshr28/ubereda/main/uber-raw-data-apr14.csv")
-
 ```
 
+Data wrangling process:
 ```{r}
-#Data wrangling process:
-
-#Filtering Uber Trips for the day of Easter only
+#Filtering Uber Trips for the day of Easter only using filter()
 new_df <- apr %>%
   filter(Date.Time > "4/20/2014 0:00:00", 
          Date.Time < "4/20/2014 23:59:00") 
   
 #Henry ~ https://stackoverflow.com/questions/8996134/extract-vectors-from-strsplit-list-without-using-a-loop
 #Using strsplit() to convert the Date.Time vector into a list formatted as [i][1]"m/d/y" and [i][2]"hr:min:sec" for i in range 1 to 9497
-#Unlisting the splitted vector then indexing by the date and time within each nested list
+#Unlisting the splitted vector using unlist() then indexing by the date and time within each nested list 
 splitted <- strsplit(as.character(new_df$Date.Time), " ")
 part1 <- unlist(splitted)[2*(1:length(new_df$Date.Time))-1]
 part2 <- unlist(splitted)[2*(1:length(new_df$Date.Time))]
 
-#New dataframe with day and time vectors separate, along with the remaining variables in the apr dataframe
+#New dataframe with separate day and time vectors from above, along with the corresponding remaining variables in the apr dataframe
 Day <- c(part1)
 Time <- c(part2)
-new_df <- data.frame(Day, 
-                     Time, 
-                     new_df$Lat, 
-                     new_df$Lon, 
-                     new_df$Base)
+new_df <- data.frame(Day,Time,new_df$Lat,new_df$Lon,new_df$Base)
 
 #Sort time vector using arrange() to observe inherent ordering and record correct indices accordingly in a vector (military time)
-#Append the row index ranges of new_df specified by the vector in a recursive manner using rbind(), saving last dataframe as new_df again
 new_df <- new_df %>%
   arrange(Time)
 
 index_vector <- c(1:536, 6930:7362, 9223:9497, 537:1624, 1625:4951, 4952:6929, 7363:7993, 7994:9222)
+
+#Append the row index ranges of new_df specified by the vector in a recursive manner with rbind(), saving last dataframe as new_df:
 first <- rbind(new_df[1:536, ], new_df[6930:7362, ])
 second <- rbind(first, new_df[9223:9497, ])
 third <- rbind(second, new_df[537:1624, ])
@@ -61,8 +61,8 @@ fifth <- rbind(fourth, new_df[4952:6929, ])
 sixth <- rbind(fifth, new_df[7363:7993, ])
 new_df <- rbind(sixth, new_df[7994:9222, ])
 
-#Manually collapsing time vector using using as.character() within fct_collapse() 
-#Morning (12am - 12pm), Afternoon (12pm - 5pm), Evening (5pm - 9pm), Night (9pm - 12am) 
+#Manually collapse time vector using using as.character() within fct_collapse(): 
+#Time categories: morning (12:00 am - 11:59 am), afternoon (12:00 pm - 4:59pm), Evening (5:00pm - 8:45pm), Night (9:00pm - 11:59pm) 
 new_df <- new_df %>%
   mutate(Index = c(1:9497),
          time_category = fct_collapse(as.character(Index),
@@ -72,17 +72,14 @@ new_df <- new_df %>%
                                       "Night" = 7994:9497))
 
 
-#Utilizing ordered factor to obtain desired arrangement of column
+#Utilizing ordered factor() to obtain desired arrangement of column:
 new_df$time_category <- factor(new_df$time_category, 
-                         levels = c("Morning", 
-                                    "Afternoon", 
-                                    "Evening", 
-                                    "Night"))
-
+                         levels = c("Morning","Afternoon","Evening","Night"))
 ```
 
+Visualizations:
 ```{r}
-#Trips by time of day (General vector)
+#Bar plot for trips by time category (vector(s): time_category)
 tod_group <- new_df %>%
   ggplot(aes(x = time_category)) + 
   geom_bar(fill = "skyblue", color = "black") + 
@@ -90,34 +87,22 @@ tod_group <- new_df %>%
        y = "Number of Trips",
        title = "Trips by Time of Day on Easter (NYC)") +
   theme_classic()
-
 tod_group
-
 ```
 
 ```{r}
-#Mutating column with condition determining if a trip was taken in upper Brooklyn, where the highest density of trips are
-new_df <- new_df %>%
-  mutate(long_west = ifelse(new_df.Lat > 40.6 & new_df.Lat < 40.8 & new_df.Lon < -73.8 & new_df.Lon > -74.05, TRUE, FALSE))
-
-prop_values <- new_df %>%
-  group_by(time_category) %>%
-  summarize(prop = mean(long_west))
-
-prop_group <- new_df %>%
-  ggplot(aes(x = time_category, fill = factor(long_west, levels = c(TRUE, FALSE)))) + 
-  geom_bar(position = "fill", color = "black") + 
-  labs(x = "Time of Day",
+#Distribution for trips by base (apr.Base vector)
+bases_group <- new_df %>%
+  ggplot(aes(x = new_df.Base, 
+             fill = time_category)) + 
+  geom_bar(color = "black") + 
+  labs(x = "Base",
        y = "Number of Trips",
-       title = "Trips by Time of Day on Easter (NYC)") +
-  scale_fill_manual(name = "Trip from Upper Brooklyn",
-                    labels = c("Yes", "No"),
-                    values = c("skyblue", "dodgerblue")) +
+       title = "Trips by Base on Easter (NYC)") +
+  scale_fill_manual(name = "Time of Day", 
+                    values = c("tan", "plum", "orange", "purple")) +
   theme_classic()
-
-prop_values
-prop_group 
-
+bases_group
 ```
 
 ```{r}
@@ -127,6 +112,7 @@ min_lat <- min(new_df$new_df.Lat)
 max_lon <- max(new_df$new_df.Lon)
 min_lon <- min(new_df$new_df.Lon)
 
+#
 location_group <- new_df %>%
   ggplot(aes(x = new_df.Lon, 
              y = new_df.Lat, 
@@ -144,26 +130,32 @@ location_group <- new_df %>%
   annotate("segment", x = -73.8, xend = -73.8, y = 40.6, yend = 40.8) + 
   annotate("segment", x = -73.8, xend = -74.05, y = 40.8, yend = 40.8) + 
   annotate("segment", x = -73.8, xend = -73.65, y = 40.8, yend = 40.9) + 
-  annotate("text", x = -73.6, y = 40.92, label = "Upper Brooklyn Area") + 
+  annotate("text", x = -73.6, y = 40.92, label = "Upby Brooklyn Area") + 
   theme_clean()
-
 location_group
-
 ```
 
 ```{r}
-#Trips by base (apr.Base vector)
-bases_group <- new_df %>%
-  ggplot(aes(x = new_df.Base, 
-             fill = time_category)) + 
-  geom_bar(color = "black") + 
-  labs(x = "Base",
+#Mutating logical vector with condition to determine if a trip was taken in Brooklyn, where the highest density of trips typically occur
+new_df <- new_df %>%
+  mutate(long_west = ifelse(new_df.Lat > 40.6 & new_df.Lat < 40.8 & new_df.Lon < -73.8 & new_df.Lon > -74.05, TRUE, FALSE))
+
+#Saving summary statistic for the proportion of trips that originated from Brooklyn, grouped by each time category
+prop_values <- new_df %>%
+  group_by(time_category) %>%
+  summarize(prop = mean(long_west))
+
+#Normalized stacked bar chart for proportions and association (vector(s): time_category, long_west (ordered and renamed levels))
+prop_group <- new_df %>%
+  ggplot(aes(x = time_category, fill = factor(long_west, levels = c(TRUE, FALSE)))) + 
+  geom_bar(position = "fill", color = "black") + 
+  labs(x = "Time of Day",
        y = "Number of Trips",
-       title = "Trips by Base on Easter (NYC)") +
-  scale_fill_manual(name = "Time of Day", 
-                    values = c("tan", "plum", "orange", "purple")) +
+       title = "Trips by Time of Day on Easter (NYC)") +
+  scale_fill_manual(name = "Trip from Upby Brooklyn",
+                    labels = c("Yes", "No"),
+                    values = c("skyblue", "dodgerblue")) +
   theme_classic()
-
-bases_group
-
+prop_values
+prop_group 
 ```
