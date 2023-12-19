@@ -91,7 +91,7 @@ tod_group
 ```
 
 ```{r}
-#Distribution for trips by base (apr.Base vector)
+#Bar plot for trips by base (vector(s): new_df.Base)
 bases_group <- new_df %>%
   ggplot(aes(x = new_df.Base, 
              fill = time_category)) + 
@@ -106,13 +106,14 @@ bases_group
 ```
 
 ```{r}
-#Location density by time of day (apr.lat, apr.lon, and General vectors)
+#Location density by time of day (vector(s): new_df.lat, new_df.lon, and time_category)
+#Maximum and minimum lattitude and longitude for filtered new_df dataframe
 max_lat <- max(new_df$new_df.Lat)
 min_lat <- min(new_df$new_df.Lat)
 max_lon <- max(new_df$new_df.Lon)
 min_lon <- min(new_df$new_df.Lon)
 
-#
+#Scatter plot for location of Uber pickups, grouped by time_category variable
 location_group <- new_df %>%
   ggplot(aes(x = new_df.Lon, 
              y = new_df.Lat, 
@@ -130,7 +131,7 @@ location_group <- new_df %>%
   annotate("segment", x = -73.8, xend = -73.8, y = 40.6, yend = 40.8) + 
   annotate("segment", x = -73.8, xend = -74.05, y = 40.8, yend = 40.8) + 
   annotate("segment", x = -73.8, xend = -73.65, y = 40.8, yend = 40.9) + 
-  annotate("text", x = -73.6, y = 40.92, label = "Upby Brooklyn Area") + 
+  annotate("text", x = -73.6, y = 40.92, label = "Brooklyn Area") + 
   theme_clean()
 location_group
 ```
@@ -145,14 +146,14 @@ prop_values <- new_df %>%
   group_by(time_category) %>%
   summarize(prop = mean(long_west))
 
-#Normalized stacked bar chart for proportions and association (vector(s): time_category, long_west (ordered and renamed levels))
+#Normalized stacked bar plot for proportions and association (vector(s): time_category, long_west (ordered and renamed levels))
 prop_group <- new_df %>%
   ggplot(aes(x = time_category, fill = factor(long_west, levels = c(TRUE, FALSE)))) + 
   geom_bar(position = "fill", color = "black") + 
   labs(x = "Time of Day",
        y = "Number of Trips",
        title = "Trips by Time of Day on Easter (NYC)") +
-  scale_fill_manual(name = "Trip from Upby Brooklyn",
+  scale_fill_manual(name = "Trip from Brooklyn",
                     labels = c("Yes", "No"),
                     values = c("skyblue", "dodgerblue")) +
   theme_classic()
