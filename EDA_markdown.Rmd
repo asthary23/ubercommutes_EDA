@@ -2,7 +2,7 @@
 title: "Exploratory Data Analysis | Uber Trips on Easter Day (NYC)"
 format: html
 ---
-Project work hours: 15
+Project work hours: 16
 
 Observational unit: one Uber trip in NYC in April, 2014 on Easter Day
 Variables (within original apr dataframe):
