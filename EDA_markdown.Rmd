@@ -2,6 +2,7 @@
 title: "Exploratory Data Analysis | Uber Trips on Easter Day (NYC)"
 format: html
 ---
+Code written in R-Studio (stat20.datahub.berkeley.edu), and transferred to GitHub file
 Worktime: 18 hours
 
 Observational unit: one Uber trip in NYC on Easter 2014
