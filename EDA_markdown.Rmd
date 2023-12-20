@@ -71,10 +71,13 @@ new_df <- new_df %>%
                                       "Evening" = 4952:7993,
                                       "Night" = 7994:9497))
 
-
 #Utilizing ordered factor() to obtain desired arrangement of column:
 new_df$time_category <- factor(new_df$time_category, 
                          levels = c("Morning","Afternoon","Evening","Night"))
+
+#Mutating logical vector with condition to determine if a trip was taken in Brooklyn, where the highest density of trips typically occur
+new_df <- new_df %>%
+  mutate(long_west = ifelse(new_df.Lat > 40.6 & new_df.Lat < 40.8 & new_df.Lon < -73.8 & new_df.Lon > -74.05, TRUE, FALSE))
 ```
 
 Visualizations:
@@ -137,10 +140,6 @@ location_group
 ```
 
 ```{r}
-#Mutating logical vector with condition to determine if a trip was taken in Brooklyn, where the highest density of trips typically occur
-new_df <- new_df %>%
-  mutate(long_west = ifelse(new_df.Lat > 40.6 & new_df.Lat < 40.8 & new_df.Lon < -73.8 & new_df.Lon > -74.05, TRUE, FALSE))
-
 #Saving summary statistic for the proportion of trips that originated from Brooklyn, grouped by each time category
 prop_values <- new_df %>%
   group_by(time_category) %>%
