@@ -150,7 +150,7 @@ location_group <- new_df %>%
   geom_point(alpha = .3, size = 1.2) + 
   labs(x = "Longitude",
        y = "Latitude",
-       title = "Location Density by Time of Day on Easter (NYC)") +
+       title = "Pickup Density by Time of Day on Easter (NYC)") +
   scale_color_manual(name = "Time of Day", 
                     values = c("tan", "plum", "orange", "purple")) +  
   scale_x_continuous(limits = c(min_lon, max_lon)) + 
