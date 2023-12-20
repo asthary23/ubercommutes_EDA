@@ -81,9 +81,10 @@ new_df <- new_df %>%
 ```
 
 Visualizations:
-
+1.
 ```{r}
-#WARNING: the date_time_format vector is formatted as [2023-12-20 hr:min:sec] after being converted into as.POSIXct class
+#Density of trips throughout Easter:
+#WARNING: the date_time_format vector is formatted as [2023-12-20 hr:min:sec] after being converted into as.POSIXct class:
 time_density <- new_df %>%
   mutate(date_time_format = as.POSIXct(new_df$Time, format = "%H:%M:%S")) %>%
   ggplot(aes(x = date_time_format)) + 
@@ -94,9 +95,9 @@ time_density <- new_df %>%
   theme_classic() 
 time_density
 ```
-
+2.
 ```{r}
-#Bar plot for trips by time category (vector(s): time_category)
+#Bar plot for trips by time category (vector(s): time_category):
 tod_group <- new_df %>%
   ggplot(aes(x = time_category)) + 
   geom_bar(fill = "skyblue", color = "black") + 
@@ -106,9 +107,9 @@ tod_group <- new_df %>%
   theme_classic()
 tod_group
 ```
-
+3.
 ```{r}
-#Bar plot for trips by base (vector(s): new_df.Base)
+#Displaying counts for time category given base (vector(s): new_df.Base, time_category):
 bases_group <- new_df %>%
   ggplot(aes(x = new_df.Base, 
              fill = time_category)) + 
@@ -117,20 +118,31 @@ bases_group <- new_df %>%
        y = "Number of Trips",
        title = "Trips by Base on Easter (NYC)") +
   scale_fill_manual(name = "Time of Day", 
-                    values = c("tan", "plum", "orange", "purple")) +
+                    values = c("tan", "plum", "orange", "dodgerblue")) +
   theme_classic()
-bases_group
-```
 
+#Normalized stacked bar plot for proportions and association:
+bases_assoc <-  new_df %>%
+  ggplot(aes(x = new_df.Base, 
+             fill = time_category)) + 
+  geom_bar(color = "black", position = "fill") + 
+  labs(x = "Base",
+       y = "Number of Trips",
+       title = "Trips by Base on Easter (NYC)") +
+  scale_fill_manual(name = "Time of Day", 
+                    values = c("tan", "plum", "orange", "dodgerblue")) +
+  theme_classic()
+bases_group / bases_assoc
+```
+4.
 ```{r}
-#Location density by time of day (vector(s): new_df.lat, new_df.lon, and time_category)
-#Maximum and minimum lattitude and longitude for filtered new_df dataframe
+#Maximum and minimum lattitude and longitude for filtered new_df dataframe:
 max_lat <- max(new_df$new_df.Lat)
 min_lat <- min(new_df$new_df.Lat)
 max_lon <- max(new_df$new_df.Lon)
 min_lon <- min(new_df$new_df.Lon)
 
-#Scatter plot for location of Uber pickups, grouped by time_category variable
+#Scatter plot for location of trips by time category (vector(s): new_df.lat, new_df.lon, and time_category):
 location_group <- new_df %>%
   ggplot(aes(x = new_df.Lon, 
              y = new_df.Lat, 
@@ -152,24 +164,36 @@ location_group <- new_df %>%
   theme_clean()
 location_group
 ```
-
+5.
 ```{r}
-#Saving summary statistic for the proportion of trips that originated from Brooklyn, grouped by each time category
+#Saving summary statistic for the proportion of trips that originated from Brooklyn, grouped by each time category:
 prop_values <- new_df %>%
   group_by(time_category) %>%
   summarize(prop = mean(long_west))
 
-#Normalized stacked bar plot for proportions and association (vector(s): time_category, long_west (ordered and renamed levels))
+#Displaying counts (vector(s): time_category, long_west (ordered and renamed levels)):
 prop_group <- new_df %>%
+  ggplot(aes(x = time_category, fill = factor(long_west, levels = c(TRUE, FALSE)))) + 
+  geom_bar(color = "black") + 
+  labs(x = "Time of Day",
+       y = "Number of Trips",
+       title = "Trips by Time of Day on Easter (NYC)") +
+  scale_fill_manual(name = "Trip from Upper Brooklyn",
+                    labels = c("Yes", "No"),
+                    values = c("skyblue", "dodgerblue")) +
+  theme_classic()
+
+#Normalized stacked bar plot for proportions and association:
+prop_assoc <- new_df %>%
   ggplot(aes(x = time_category, fill = factor(long_west, levels = c(TRUE, FALSE)))) + 
   geom_bar(position = "fill", color = "black") + 
   labs(x = "Time of Day",
        y = "Number of Trips",
        title = "Trips by Time of Day on Easter (NYC)") +
-  scale_fill_manual(name = "Trip from Brooklyn",
+  scale_fill_manual(name = "Trip from Upper Brooklyn",
                     labels = c("Yes", "No"),
                     values = c("skyblue", "dodgerblue")) +
   theme_classic()
 prop_values
-prop_group 
+prop_group / prop_assoc 
 ```
