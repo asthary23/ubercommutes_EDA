@@ -157,7 +157,7 @@ location_group <- new_df %>%
   ggplot(aes(x = new_df.Lon, 
              y = new_df.Lat, 
              color = time_category)) + 
-  geom_point(alpha = .3, size = 1.2) + 
+  geom_point(alpha = .5, size = 1.2) + 
   labs(x = "Longitude",
        y = "Latitude",
        title = "Pickup Density by Time of Day on Easter (NYC)") +
