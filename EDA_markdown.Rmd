@@ -2,7 +2,7 @@
 title: "Exploratory Data Analysis | Uber Trips on Easter Day (NYC)"
 format: html
 ---
-Worktime: 17 hours
+Worktime: 18 hours
 
 Observational unit: one Uber trip in NYC on Easter 2014
 Variables (within original apr dataframe):
