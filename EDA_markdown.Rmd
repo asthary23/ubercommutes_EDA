@@ -160,3 +160,18 @@ prop_group <- new_df %>%
 prop_values
 prop_group 
 ```
+
+```{r}
+#Converting Time vector as a position time series for plot
+#WARNING: Time vector has been appended a date within new_df, formatted as [2023-12-20 hr:min:sec]
+new_df$Time = as.POSIXct(new_df$Time, format = "%H:%M:%S")
+
+#Exclude appended date in Time vector from appearing in the x-axis label by utilizing scale_x_datetime()
+new_df %>%
+  ggplot(aes(x = Time)) + 
+  geom_density(fill = "skyblue") +
+  scale_x_datetime(labels = scales::time_format("%H:%M:%S")) +
+  labs(x = "Military Time",
+       y = "Density") +
+  theme_classic() 
+```
