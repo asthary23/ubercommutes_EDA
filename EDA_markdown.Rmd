@@ -4,7 +4,7 @@ format: html
 ---
 Worktime: 17 hours
 
-Observational unit: one Uber trip in NYC in April, 2014 on Easter Day
+Observational unit: one Uber trip in NYC on Easter 2014
 Variables (within original apr dataframe):
   Date/Time : The date and time of the Uber pickup 
   Lat : the latitude of the pickup location  
@@ -29,30 +29,29 @@ apr <- read.csv("https://raw.githubusercontent.com/harshr28/ubereda/main/uber-ra
 
 Data wrangling process:
 ```{r}
-#Filtering Uber Trips for the day of Easter only using filter()
+#Filter Uber Trips for only Easter using filter()
 new_df <- apr %>%
   filter(Date.Time > "4/20/2014 0:00:00", 
          Date.Time < "4/20/2014 23:59:00") 
   
 #Henry ~ https://stackoverflow.com/questions/8996134/extract-vectors-from-strsplit-list-without-using-a-loop
-#Using strsplit() to convert the Date.Time vector into a list formatted as [i][1]"m/d/y" and [i][2]"hr:min:sec" for i in range 1 to 9497
-#Unlisting the splitted vector using unlist() then indexing by the date and time within each nested list 
+#Use strsplit() to convert Date.Time vector into list formatted [i][1]"m/d/y" and [i][2]"hr:min:sec" for i in range 1 to length(new_df)
+#Unlist the splitted vector using unlist() then indexing by the date and time items within each nested list 
 splitted <- strsplit(as.character(new_df$Date.Time), " ")
 part1 <- unlist(splitted)[2*(1:length(new_df$Date.Time))-1]
 part2 <- unlist(splitted)[2*(1:length(new_df$Date.Time))]
 
-#New dataframe with separate day and time vectors from above, along with the corresponding remaining variables in the apr dataframe
+#Create new dataframe that includes the temporal vectors initialized above, along with the remaining columns in the new_df dataframe
 Day <- c(part1)
 Time <- c(part2)
 new_df <- data.frame(Day,Time,new_df$Lat,new_df$Lon,new_df$Base)
 
 #Sort time vector using arrange() to observe inherent ordering and record correct indices accordingly in a vector (military time)
-new_df <- new_df %>%
-  arrange(Time)
-
+new_df <- arrange(new_df, Time)
 index_vector <- c(1:536, 6930:7362, 9223:9497, 537:1624, 1625:4951, 4952:6929, 7363:7993, 7994:9222)
 
-#Append the row index ranges of new_df specified by the vector in a recursive manner with rbind(), saving last dataframe as new_df:
+#In the order specified by index_vector, done in recursive fashion, append the index ranges of new_df to a new vector using rbind() 
+#Save the final (or theoretically, the seventh) vector to the new_df dataframe
 first <- rbind(new_df[1:536, ], new_df[6930:7362, ])
 second <- rbind(first, new_df[9223:9497, ])
 third <- rbind(second, new_df[537:1624, ])
@@ -61,8 +60,8 @@ fifth <- rbind(fourth, new_df[4952:6929, ])
 sixth <- rbind(fifth, new_df[7363:7993, ])
 new_df <- rbind(sixth, new_df[7994:9222, ])
 
-#Manually collapse time vector using using as.character() within fct_collapse(): 
-#Time categories: morning (12:00 am - 11:59 am), afternoon (12:00 pm - 4:59pm), Evening (5:00pm - 8:45pm), Night (9:00pm - 11:59pm) 
+#Manually collapse time vector using using as.character() within fct_collapse(), then create an Index column from 1 to length(new_df)
+#Create four levels: morning (12:00am - 11:59am), afternoon (12:00pm - 4:59pm), Evening (5:00pm - 8:45pm), Night (9:00pm - 11:59pm) 
 new_df <- new_df %>%
   mutate(Index = c(1:9497),
          time_category = fct_collapse(as.character(Index),
@@ -71,11 +70,11 @@ new_df <- new_df %>%
                                       "Evening" = 4952:7993,
                                       "Night" = 7994:9497))
 
-#Utilizing ordered factor() to obtain desired arrangement of column:
+#Utilize ordered factor() to obtain desired arrangement of column
 new_df$time_category <- factor(new_df$time_category, 
                          levels = c("Morning","Afternoon","Evening","Night"))
 
-#Mutating logical vector with condition to determine if a trip was taken in Brooklyn, where the highest density of trips typically occur
+#Mutate logical vector with condition with ifelse() to determine if a trip is from Brooklyn, where most trips tend to be made from
 new_df <- new_df %>%
   mutate(long_west = ifelse(new_df.Lat > 40.6 & new_df.Lat < 40.8 & new_df.Lon < -73.8 & new_df.Lon > -74.05, TRUE, FALSE))
 ```
@@ -83,21 +82,7 @@ new_df <- new_df %>%
 Visualizations:
 1.
 ```{r}
-#Density of trips throughout Easter:
-#WARNING: the date_time_format vector is formatted as [2023-12-20 hr:min:sec] after being converted into as.POSIXct class:
-time_density <- new_df %>%
-  mutate(date_time_format = as.POSIXct(new_df$Time, format = "%H:%M:%S")) %>%
-  ggplot(aes(x = date_time_format)) + 
-  geom_density(fill = "skyblue") +
-  scale_x_datetime(labels = scales::time_format("%H:%M:%S")) +
-  labs(x = "Military Time",
-       y = "Density") +
-  theme_classic() 
-time_density
-```
-2.
-```{r}
-#Bar plot for trips by time category (vector(s): time_category):
+#Bar plot for trips by time category (vector(s): time_category)
 tod_group <- new_df %>%
   ggplot(aes(x = time_category)) + 
   geom_bar(fill = "skyblue", color = "black") + 
@@ -107,9 +92,34 @@ tod_group <- new_df %>%
   theme_classic()
 tod_group
 ```
+2.
+```{r}
+#Density of trips throughout Easter in NYC (vector(s): Time, date_time_format(modified vector)
+#WARNING: the date_time_format vector is formatted as [2023-12-20 hr:min:sec] after being converted into as.POSIXct class
+annotate_1 <- as.POSIXct("00:00:00", format = "%H:%M:%S")
+annotate_2 <- as.POSIXct("12:00:00", format = "%H:%M:%S")
+annotate_3 <- as.POSIXct("17:00:00", format = "%H:%M:%S")
+annotate_4 <- as.POSIXct("21:00:00", format = "%H:%M:%S")
+annotate_5 <- as.POSIXct("24:00:00", format = "%H:%M:%S")
+
+time_density <- new_df %>%
+  mutate(date_time_format = as.POSIXct(new_df$Time, format = "%H:%M:%S")) %>%
+  ggplot(aes(x = date_time_format)) + 
+  geom_density(fill = "darkgrey") +
+  scale_x_datetime(labels = scales::time_format("%H:%M:%S")) +
+  labs(x = "Military Time",
+       y = "Density") +
+  geom_vline(xintercept = as.numeric(annotate_1), linetype = "dashed", color = "lightblue", size = 1) +
+  geom_vline(xintercept = as.numeric(annotate_2), linetype = "dashed", color = "lightblue", size = 1) +
+  geom_vline(xintercept = as.numeric(annotate_3), linetype = "dashed", color = "lightblue", size = 1) +
+  geom_vline(xintercept = as.numeric(annotate_4), linetype = "dashed", color = "lightblue", size = 1) +
+  geom_vline(xintercept = as.numeric(annotate_5), linetype = "dashed", color = "lightblue", size = 1) +
+  theme_classic() 
+time_density
+```
 3.
 ```{r}
-#Displaying counts for time category given base (vector(s): new_df.Base, time_category):
+#Displaying counts for time category given base (vector(s): new_df.Base, time_category)
 bases_group <- new_df %>%
   ggplot(aes(x = new_df.Base, 
              fill = time_category)) + 
@@ -121,7 +131,7 @@ bases_group <- new_df %>%
                     values = c("tan", "plum", "orange", "dodgerblue")) +
   theme_classic()
 
-#Normalized stacked bar plot for proportions and association:
+#Normalized stacked bar plot for proportions and association
 bases_assoc <-  new_df %>%
   ggplot(aes(x = new_df.Base, 
              fill = time_category)) + 
@@ -136,13 +146,13 @@ bases_group / bases_assoc
 ```
 4.
 ```{r}
-#Maximum and minimum lattitude and longitude for filtered new_df dataframe:
+#Maximum and minimum lattitude and longitude for filtered new_df dataframe
 max_lat <- max(new_df$new_df.Lat)
 min_lat <- min(new_df$new_df.Lat)
 max_lon <- max(new_df$new_df.Lon)
 min_lon <- min(new_df$new_df.Lon)
 
-#Scatter plot for location of trips by time category (vector(s): new_df.lat, new_df.lon, and time_category):
+#Scatter plot for location of trips by time category (vector(s): new_df.lat, new_df.lon, and time_category)
 location_group <- new_df %>%
   ggplot(aes(x = new_df.Lon, 
              y = new_df.Lat, 
@@ -166,12 +176,12 @@ location_group
 ```
 5.
 ```{r}
-#Saving summary statistic for the proportion of trips that originated from Brooklyn, grouped by each time category:
+#Saving summary statistic for the proportion of trips that were taken from Brooklyn, for each time category
 prop_values <- new_df %>%
   group_by(time_category) %>%
   summarize(prop = mean(long_west))
 
-#Displaying counts (vector(s): time_category, long_west (ordered and renamed levels)):
+#Displaying counts (vector(s): time_category, long_west (ordered and renamed levels))
 prop_group <- new_df %>%
   ggplot(aes(x = time_category, fill = factor(long_west, levels = c(TRUE, FALSE)))) + 
   geom_bar(color = "black") + 
@@ -183,7 +193,7 @@ prop_group <- new_df %>%
                     values = c("skyblue", "dodgerblue")) +
   theme_classic()
 
-#Normalized stacked bar plot for proportions and association:
+#Normalized stacked bar plot for proportions and association
 prop_assoc <- new_df %>%
   ggplot(aes(x = time_category, fill = factor(long_west, levels = c(TRUE, FALSE)))) + 
   geom_bar(position = "fill", color = "black") + 
