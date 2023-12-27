@@ -182,7 +182,7 @@ prop_group <- new_df %>%
   labs(x = "Time of Day",
        y = "Number of Trips",
        title = "Trips by Time of Day on Easter (NYC)") +
-  scale_fill_manual(name = "Trip from Upper Brooklyn",
+  scale_fill_manual(name = "Trip from Brooklyn Area",
                     labels = c("Yes", "No"),
                     values = c("skyblue", "dodgerblue")) +
   theme_classic()
@@ -194,7 +194,7 @@ prop_assoc <- new_df %>%
   labs(x = "Time of Day",
        y = "Number of Trips",
        title = "Trips by Time of Day on Easter (NYC)") +
-  scale_fill_manual(name = "Trip from Upper Brooklyn",
+  scale_fill_manual(name = "Trip from Brooklyn Area",
                     labels = c("Yes", "No"),
                     values = c("skyblue", "dodgerblue")) +
   theme_classic()
