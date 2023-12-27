@@ -109,7 +109,8 @@ time_density <- new_df %>%
   geom_density(fill = "dodgerblue4", alpha = 0.9) +
   scale_x_datetime(labels = scales::time_format("%H:%M:%S")) +
   labs(x = "Military Time",
-       y = "Density") +
+       y = "Density",
+       title = "                          Morning                           Afternoon       Evening      Night") +
   geom_vline(xintercept = as.numeric(annotate_1), linetype = "dashed", color = "lightblue", size = 1) +
   geom_vline(xintercept = as.numeric(annotate_2), linetype = "dashed", color = "lightblue", size = 1) +
   geom_vline(xintercept = as.numeric(annotate_3), linetype = "dashed", color = "lightblue", size = 1) +
