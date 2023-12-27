@@ -2,15 +2,6 @@
 title: "Exploratory Data Analysis | Uber Trips on Easter Day (NYC)"
 format: html
 ---
-Code written in R-Studio (stat20.datahub.berkeley.edu), and transferred to GitHub file
-Worktime: 18 hours
-
-Observational unit: one Uber trip in NYC on Easter 2014
-Variables (within original apr dataframe):
-  Date/Time : The date and time of the Uber pickup 
-  Lat : the latitude of the pickup location  
-  Lon : the longitude of the pickup location 
-  Base : the TLC base code associated with the driver
 
 Installing necessary libraries/packages:
 ```{r}
