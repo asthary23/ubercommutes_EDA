@@ -154,6 +154,7 @@ max_lon <- max(new_df$new_df.Lon)
 min_lon <- min(new_df$new_df.Lon)
 
 #Scatter plot for location of trips by time category (vector(s): new_df.lat, new_df.lon, and time_category)
+#Brooklyn area defined in longitude interval (-73.8, -74.05) and lattitude interval (40.6, 40.8)
 location_group <- new_df %>%
   ggplot(aes(x = new_df.Lon, 
              y = new_df.Lat, 
